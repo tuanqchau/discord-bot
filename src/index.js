@@ -1,6 +1,5 @@
 // Require the necessary discord.js classes
 const { Client, Events, GatewayIntentBits } = require('discord.js');
-const { token } = require('../config.json');
 require('dotenv').config();
 
 // Create a new client instance
@@ -23,7 +22,13 @@ client.on('messageCreate', (message) => {
     if (message.content === 'hello') {
         message.reply('Ohayo! Onii-chan! ' + `${message.author.username}`)
     }
+
+    if (message.content.startsWith('!meeting')) {
+        const timeString = message.content.split(' ')[1];
+
+    }
 })
+
 
 // Log in to Discord with your client's token
 client.login(process.env.TOKEN);
