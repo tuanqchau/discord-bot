@@ -1,9 +1,9 @@
-// Require the necessary discord.js classes
+
 const { Client, Events, GatewayIntentBits } = require('discord.js');
 require('dotenv').config();
 const schedule = require('node-schedule');
 
-// Create a new client instance
+
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
@@ -26,25 +26,35 @@ client.on('messageCreate', (message) => {
 
     if (message.content.startsWith('!meeting')) {
         const timeString = message.content.split(' ')[1];
+        message.reply('Meeting scheduled at ' + `${timeString}`)
+        //+ '\nReact with ✅ if you are attending and ❌ if not'
+        .then((sentMessage) => {
+            const reactions = ['✅', '❌'];
 
-        // Parse the time and schedule the meeting reminder
-        scheduleMeetingReminder(timeString, message.channel);
+            Promise.all(reactions.map(emoji => sentMessage.react(emoji)))
+        .then(() => console.log('Reaction added to the reply!'))
+        .catch((error) => console.error('Error adding reaction to the reply:', error));
+
+      scheduleMeetingReminder(timeString, message.channel);
+    })
+    .catch((error) => console.error('Error sending reply:', error));
     }
 })
 
 function scheduleMeetingReminder(timeString, channel) {
-    // Parse the time string to a Date object
     const meetingTime = parseTimeString(timeString);
-  
-    // Calculate the reminder time (10 minutes before the meeting)
     const reminderTime = new Date(meetingTime.getTime() - 10 * 60 * 1000);
-  
-    // Schedule the reminder job
-    const job = schedule.scheduleJob(reminderTime, () => {
-      // Send a reminder message to the specified channel
-      channel.send(`@everyone Meeting reminder: The meeting is in 10 minutes!`);
+    const now = new Date();
+
+    const jobSetup = schedule.scheduleJob(reminderTime, () => {
+        channel.send(`@everyone Meeting reminder: The meeting is in 10 minutes!`);
     });
-  
+
+    const job = schedule.scheduleJob(meetingTime, () => {
+        channel.send(`@everyone It's meeting time!`);
+    });
+
+    
     console.log(`Meeting scheduled for ${meetingTime}`);
     console.log(`Reminder scheduled for ${reminderTime}`);
   }
@@ -53,7 +63,6 @@ function scheduleMeetingReminder(timeString, channel) {
     // Example: timeString = "20:00"
     const [hours, minutes] = timeString.split(':').map((value) => parseInt(value, 10));
   
-    // Set the meeting time to today at the specified hours and minutes
     const meetingTime = new Date();
     meetingTime.setHours(hours);
     meetingTime.setMinutes(minutes);
@@ -63,6 +72,4 @@ function scheduleMeetingReminder(timeString, channel) {
     return meetingTime;
   }
 
-
-// Log in to Discord with your client's token
 client.login(process.env.TOKEN);
