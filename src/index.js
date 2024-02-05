@@ -10,6 +10,9 @@ const client = new Client({
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
+        GatewayIntentBits.MessageEmbeds,
+        GatewayIntentBits.MessageReactions,
+        GatewayIntentBits.MessageTyping,
     ] 
 });
 
@@ -21,26 +24,65 @@ client.on('messageCreate', (message) => {
     if (message.author.bot) return null
 
     if (message.content === 'hello') {
-        message.reply('Ohayo! Onii-chan! ' + `${message.author.username}`)
+        message.reply('What\'s up ' + `${message.author.username}`)
     }
 
     if (message.content.startsWith('!meeting')) {
         const timeString = message.content.split(' ')[1];
-        message.reply('Meeting scheduled at ' + `${timeString}`)
+        message.reply('Meeting scheduled at ' + `${timeString}` + '\nPoll ends in 10 minutes.')
         //+ '\nReact with ✅ if you are attending and ❌ if not'
         .then((sentMessage) => {
             const reactions = ['✅', '❌'];
 
             Promise.all(reactions.map(emoji => sentMessage.react(emoji)))
-        .then(() => console.log('Reaction added to the reply!'))
+        .then(() => {countReactions(sentMessage)}) //passing in current time
         .catch((error) => console.error('Error adding reaction to the reply:', error));
+        
+        
 
-      scheduleMeetingReminder(timeString, message.channel);
+      //scheduleMeetingReminder(timeString, message.channel);
+
     })
     .catch((error) => console.error('Error sending reply:', error));
     }
 })
 
+function countReactions(sentMessage) {
+    const collectorFilter = (reaction, user) => {
+        return ['✅', '❌'].includes(reaction.emoji.name) && user.id === sentMessage.author.id;
+    }
+    const checkCount = 0;
+
+    sentMessage.awaitReactions({filter: collectorFilter, time: 600_000, errors: ['time']})
+    .then((collected) => {
+        console.log(collected.size); //total size of reactions collected
+        
+        checkCount = collected.filter(reaction => reaction.emoji.name === '✅').size;
+        //const xCount = collected.filter(reaction => reaction.emoji.name === '❌').size;
+
+        console.log(checkCount);
+        
+        if (checkCount >= 3) {
+            
+        }
+    })
+    .catch(collected => {
+        console.log(`After 10 minutes, only ${collected.size} reactions were collected.`);
+    })
+    return checkCount;
+}
+// function PollStart(startTime, sentMessage) {
+//     console.log('Poll started!');
+//     const pollEndTime = new Date(startTime.getTime() + 10 * 60 * 1000);
+//     const reactCount = 0;
+//     schedule.scheduleJob(pollEndTime, () => { //
+//         console.log('Poll ended!');
+//         //count reactions here
+
+//     });
+
+//     return reactCount;
+// }
 function scheduleMeetingReminder(timeString, channel) {
     const meetingTime = parseTimeString(timeString);
     const reminderTime = new Date(meetingTime.getTime() - 10 * 60 * 1000);
