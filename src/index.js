@@ -35,7 +35,7 @@ client.on('messageCreate', async (message) => {
         console.log(timeString) //del
         try {
             //send message to channel
-            const sentMessage = await message.channel.send('React to this');
+            const sentMessage = await message.channel.send(`${message.author.username} wants to schedule a meeting at ${timeString}. React to this message if you can attend the meeting.`);
             //react to message
             await sentMessage.react('✅');
 
@@ -91,7 +91,7 @@ function scheduleMeetingReminder(timeString, channel, userList) {
 
     const usersString = '@' + userList.join(' @');
 
-    channel.send(`Meeting scheduled for ${meetingTime} with ${usersString} `);
+    channel.send(`Meeting scheduled successfully for ${meetingTime} with ${usersString} `);
     //console.log(`Reminder scheduled for ${reminderTime}`);
     
     const jobSetup = schedule.scheduleJob(reminderTime, () => {
