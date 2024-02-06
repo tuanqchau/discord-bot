@@ -1,4 +1,3 @@
-
 const { Client, Events, GatewayIntentBits } = require('discord.js');
 require('dotenv').config();
 const schedule = require('node-schedule');
@@ -20,16 +19,16 @@ client.on('ready', (c) => {
 })
 
 client.on('messageCreate', async (message) => {
+    
+    if (message.content === 'hello') {
+        message.reply('Hello! How can I assist you? ' + `${message.author.username}`)
+    }
     if (message.author.bot || !message.content.startsWith(prefix)) return;
 
     const args = message.content.slice(prefix.length).split(/ +/)
     console.log(args) //del
     const command = args.shift().toLowerCase() //shift() remove the first element of the array
     const MAX_REACTIONS = 5
-    if (message.content === 'hello') {
-        message.reply('What\'s up ' + `${message.author.username}`)
-    }
-
     if (command === 'meeting') {
         const userList = [];
         const timeString = args[0]
@@ -48,7 +47,7 @@ client.on('messageCreate', async (message) => {
             const collector = sentMessage.createReactionCollector({
                 filter: filter,
                 max: MAX_REACTIONS,
-                time: 5_000
+                time: 6_000
             });
 
             collector.on('collect', (reaction, user) => {
@@ -61,7 +60,7 @@ client.on('messageCreate', async (message) => {
                 //reactions are no longer collected
                 //if the emoji is clicked the MAX_REACTIONS times
                 if (reason === 'limit') {
-                    message.channel.send('Reached max count of reactions.');
+                    message.channel.send('Reached max number of reactions.');
                 }
                 else if (reason === 'time') {
                     message.channel.send('Time limit reached.');
@@ -90,17 +89,17 @@ function scheduleMeetingReminder(timeString, channel, userList) {
     const meetingTime = parseTimeString(timeString);
     const reminderTime = new Date(meetingTime.getTime() - 10 * 60 * 1000);
 
-    const usersString = '@' + userList.join(' ');
+    const usersString = '@' + userList.join(' @');
 
-    console.log(`Meeting scheduled for ${meetingTime}`);
-    console.log(`Reminder scheduled for ${reminderTime}`);
+    channel.send(`Meeting scheduled for ${meetingTime} with ${usersString} `);
+    //console.log(`Reminder scheduled for ${reminderTime}`);
     
     const jobSetup = schedule.scheduleJob(reminderTime, () => {
-        channel.send(`${usersString} Meeting reminder: The meeting is in 10 minutes!`);
+        channel.send(`Meeting reminder: The meeting is in 10 minutes! ${usersString} `);
     });
 
     const job = schedule.scheduleJob(meetingTime, () => {
-        channel.send(`${usersString} It's meeting time!`);
+        channel.send(` It's meeting time! ${usersString}`);
     });
   }
   
