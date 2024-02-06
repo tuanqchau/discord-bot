@@ -25,7 +25,7 @@ client.on('messageCreate', async (message) => {
     const args = message.content.slice(prefix.length).split(/ +/)
     console.log(args) //del
     const command = args.shift().toLowerCase() //shift() remove the first element of the array
-    const MAX_REACTIONS = 6
+    const MAX_REACTIONS = 5
     if (message.content === 'hello') {
         message.reply('What\'s up ' + `${message.author.username}`)
     }
@@ -66,9 +66,11 @@ client.on('messageCreate', async (message) => {
                 }
                 console.log(`Collected ${collected.size} reactions.`);
 
-                if (collected.size >= 1) {
-                    
+                if (collected.size >= 1) {        
                     scheduleMeetingReminder(timeString, message.channel);
+                }
+                else {
+                    message.channel.send('Not enough people to schedule a meeting');
                 }
             });
         }
@@ -78,46 +80,8 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-function testFunct() {
-    
-}
+
 //Section: helper functions
-// async function countReactions(sentMessage, timeString) {
-//     const collectorFilter = (reaction, user) => {
-//         return ['✅', '❌'].includes(reaction.emoji.name) && user.id === sentMessage.author.id;
-//     }
-//     const checkCount = 0;
-//     const collector = sentMessage.createReactionCollector({filter: collectorFilter, time: 30_000});
-
-//         collector.on('collect', (reaction, user) => {
-//             console.log(`Collecting ${reaction.emoji.name} from ${user.tag}`);
-//         });
-
-//         collector.on('end', (collected) => { 
-//             console.log(`Collected ${collected.size} reactions.`);
-//         });
-    
-
-//     // await sentMessage.awaitReactions({filter: collectorFilter, time: 30_000, errors: ['time']})
-//     // .then((collected) => {
-//     //     console.log(collected.size); //total size of reactions collected
-        
-//     //     checkCount = collected.filter(reaction => reaction.emoji.name === '✅').size;
-//     //     //const xCount = collected.filter(reaction => reaction.emoji.name === '❌').size;
-
-//     //     console.log(checkCount);
-        
-//     //     if (checkCount >= 1) {
-//     //         console.log('checkCount >= 1');
-//     //         scheduleMeetingReminder(timeString, sentMessage.channel)
-//     //     }
-//     // })
-//     // .catch(collected => {
-//     //     console.log(`After 10 minutes, ${collected.size} reactions were collected.`);
-//     // })
-//     return checkCount;
-// }
-
 function scheduleMeetingReminder(timeString, channel) {
     console.log('scheduleMeetingReminder');
     const meetingTime = parseTimeString(timeString);
@@ -134,9 +98,6 @@ function scheduleMeetingReminder(timeString, channel) {
     const job = schedule.scheduleJob(meetingTime, () => {
         channel.send(`@everyone It's meeting time!`);
     });
-
-    
-    
   }
   
   function parseTimeString(timeString) {
